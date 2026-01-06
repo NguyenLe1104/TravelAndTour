@@ -67,7 +67,3 @@ pnpm-store/
 
 # Generated files
 *.tsbuildinfo
-
-# Submodules or module folders with git issues
-BE-TravelAndTour/
-FE-TravelAndTour/
