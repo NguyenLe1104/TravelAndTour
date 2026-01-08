@@ -37,6 +37,5 @@ COPY --from=builder /app/dist ./dist
 # Expose port
 EXPOSE 3000
 
-# Use dumb-init to run the application
-ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "dist/src/main"]
+# Run migrations before starting the application
+CMD ["sh", "-c", "npx prisma db push --skip-generate && exec node dist/src/main"]
