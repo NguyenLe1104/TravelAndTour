@@ -8,7 +8,13 @@ import {
 } from '@nestjs/common';
 import { UserRolesService } from './user-roles.service';
 import { ResponseMessage } from '../common/decorators/response-message.decorator';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('ADMIN')
 @Controller('user-roles')
 export class UserRolesController {
     constructor(private service: UserRolesService) { }

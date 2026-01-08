@@ -24,7 +24,8 @@ model User {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now())
 
-  userRoles   UserRole[]
+  userRoles      UserRole[]
+  refreshTokens  RefreshToken[]
 }
 
 model Role {
@@ -42,4 +43,14 @@ model UserRole {
   roleId Int
 
   @@id([userId, roleId])
+}
+
+model RefreshToken {
+  id          Int      @id @default(autoincrement())
+  token       String   @unique
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  expiresAt   DateTime
+  revoked     Boolean  @default(false)
+  createdAt   DateTime @default(now())
 }

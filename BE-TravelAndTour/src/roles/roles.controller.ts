@@ -10,6 +10,13 @@ import { ResponseMessage } from '../common/decorators/response-message.decorator
 
 import { RolesService } from './roles.service';
 
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
+
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('ADMIN')
 @Controller('roles')
 export class RolesController {
     constructor(private rolesService: RolesService) { }
