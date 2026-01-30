@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { RolesModule } from './roles/roles.module';
 import { UserRolesModule } from './user-roles/user-roles.module';
+import { ReviewTourModule } from './review-tour/reviewtour.module';
 import { ToursModule } from './tours/tours.module';
 
 @Module({
@@ -20,7 +21,11 @@ import { ToursModule } from './tours/tours.module';
     AuthModule,
     RolesModule,
     UserRolesModule,
+<<<<<<< HEAD
+    ReviewTourModule
+=======
     ToursModule
+>>>>>>> main
   ],
   controllers: [AppController],
   providers: [AppService],
