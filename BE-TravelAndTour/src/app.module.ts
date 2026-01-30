@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { RolesModule } from './roles/roles.module';
 import { UserRolesModule } from './user-roles/user-roles.module';
+import { ReviewTourModule } from './review-tour/reviewtour.module';
 import { ToursModule } from './tours/tours.module';
 import { BookingsModule } from './bookings/bookings.module';
 
@@ -23,6 +24,7 @@ import { BookingsModule } from './bookings/bookings.module';
     UserRolesModule,
     ToursModule,
     BookingsModule,
+    ReviewTourModule,
   ],
   controllers: [AppController],
   providers: [AppService],
