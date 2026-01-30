@@ -9,6 +9,7 @@ import { RolesModule } from './roles/roles.module';
 import { UserRolesModule } from './user-roles/user-roles.module';
 import { ReviewTourModule } from './review-tour/reviewtour.module';
 import { ToursModule } from './tours/tours.module';
+import { BookingsModule } from './bookings/bookings.module';
 
 @Module({
   imports: [
@@ -21,11 +22,9 @@ import { ToursModule } from './tours/tours.module';
     AuthModule,
     RolesModule,
     UserRolesModule,
-<<<<<<< HEAD
-    ReviewTourModule
-=======
-    ToursModule
->>>>>>> main
+    ToursModule,
+    BookingsModule,
+    ReviewTourModule,
   ],
   controllers: [AppController],
   providers: [AppService],
