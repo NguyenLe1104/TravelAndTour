@@ -96,6 +96,188 @@ model Tour {
   seatsTotal      Int
   seatsAvailable  Int
   status          TourStatus @default(DRAFT)
+
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  images          TourImage[]
+  schedules       TourSchedule[]
+  bookings        Booking[]
+  reviews         Review[]
+}
+
+model TourImage {
+  id        Int    @id @default(autoincrement())
+  tourId   Int
+  imageUrl String
+
+  tour     Tour   @relation(fields: [tourId], references: [id], onDelete: Cascade)
+}
+
+model TourSchedule {
+  id        Int
+  tourId    Int
+  dayNumber Int
+  title     String?
+  activities String?
+
+  tour      Tour @relation(fields: [tourId], references: [id], onDelete: Cascade)
+
+  @@id([tourId, dayNumber])
+}
+
+model Booking {
+  id          Int           @id @default(autoincrement())
+  userId      Int
+  tourId      Int
+  quantity    Int
+  totalPrice  Decimal
+  status      BookingStatus @default(PENDING)
+
+  createdAt   DateTime      @default(now())
+
+  user        User          @relation(fields: [userId], references: [id])
+  tour        Tour          @relation(fields: [tourId], references: [id])
+
+  travelers   BookingTraveler[]
+  payment     Payment?
+}
+
+model BookingTraveler {
+  id         Int     @id @default(autoincrement())
+  bookingId Int
+  fullName  String
+  gender    Gender
+  dob       DateTime?
+  passport  String?
+
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id            Int           @id @default(autoincrement())
+  bookingId     Int           @unique
+  method        String
+  amount        Decimal
+  status        PaymentStatus
+  transactionId String?
+  paidAt        DateTime?
+
+  booking       Booking       @relation(fields: [bookingId], references: [id])
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  tourId    Int
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+  tour      Tour     @relation(fields: [tourId], references: [id])
+
+  @@unique([userId, tourId])
+}
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["nativeDistinct"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int      @id @default(autoincrement())
+  username    String   @unique
+  password    String
+  fullName    String
+  email       String   @unique
+  phone       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+
+  userRoles      UserRole[]
+  refreshTokens  RefreshToken[]
+
+  bookings       Booking[]
+  reviews        Review[]
+}
+
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+
+  userRoles   UserRole[]
+}
+
+model UserRole {
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+  role   Role @relation(fields: [roleId], references: [id])
+  roleId Int
+
+  @@id([userId, roleId])
+}
+
+model RefreshToken {
+  id          Int      @id @default(autoincrement())
+  token       String   @unique
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  expiresAt   DateTime
+  revoked     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+enum TourStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+}
+
+enum BookingStatus {
+  PENDING
+  PAID
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+model Tour {
+  id              Int        @id @default(autoincrement())
+  title           String
+  description     String?
+  price           Decimal
+  durationDays    Int
+  location        String
+  startDate       DateTime?
+  endDate         DateTime?
+  seatsTotal      Int
+  seatsAvailable  Int
+  status          TourStatus @default(DRAFT)
   categoryId      Int
   category        TourCategory @relation(fields: [categoryId], references: [id])
 

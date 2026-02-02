@@ -38,4 +38,4 @@ COPY --from=builder /app/dist ./dist
 EXPOSE 3000
 
 # Run migrations before starting the application
-CMD ["sh", "-c", "npx prisma db push --skip-generate && exec node dist/src/main"]
+CMD ["sh", "-c", "npx prisma db push --skip-generate --accept-data-loss && exec node dist/src/main"]

@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_USER: ${DB_USER:-traveltour}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-traveltour123}
-      POSTGRES_DB: ${DB_NAME:-travelandtour}
+      POSTGRES_DB: ${DB_NAME:-traveltour}
     ports:
       - "5432:5432"
     volumes:
@@ -27,12 +27,6 @@ services:
       context: ./BE-TravelAndTour
       dockerfile: Dockerfile
     container_name: travelandtour_backend
-    volumes:
-      - ./BE-TravelAndTour:/app
-      - /app/node_modules
-    command: sh -c "npm install && npm install -g @nestjs/cli && npm run start:dev"
-    # command: npm run start:dev
-    # command: tail -f /dev/null
     environment:
       NODE_ENV: production
       DATABASE_URL: postgresql://${DB_USER:-traveltour}:${DB_PASSWORD:-traveltour123}@postgres:5432/${DB_NAME:-travelandtour}
@@ -58,9 +52,11 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@example.com}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
     ports:
       - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./servers.json:/pgadmin4/servers.json
     depends_on:
       - postgres
     networks:
@@ -83,6 +79,7 @@ services:
 
 volumes:
   postgres_data:
+  pgadmin_data:
 
 networks:
   travelandtour-network:

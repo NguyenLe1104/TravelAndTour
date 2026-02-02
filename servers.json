@@ -1,0 +1,13 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "TravelAndTour",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "travelandtour",
+      "Username": "traveltour",
+      "SSLMode": "prefer"
+    }
+  }
+}

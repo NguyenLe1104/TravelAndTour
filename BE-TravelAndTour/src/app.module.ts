@@ -7,9 +7,9 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { RolesModule } from './roles/roles.module';
 import { UserRolesModule } from './user-roles/user-roles.module';
-import { TourCategoryController } from './tour-category/tour-category.controller';
-import { TourCategoryService } from './tour-category/tour-category.service';
-import { TourModule } from './tour/tour.module';
+import { ReviewTourModule } from './review-tour/reviewtour.module';
+import { ToursModule } from './tours/tours.module';
+import { BookingsModule } from './bookings/bookings.module';
 
 @Module({
   imports: [
@@ -22,9 +22,11 @@ import { TourModule } from './tour/tour.module';
     AuthModule,
     RolesModule,
     UserRolesModule,
-    TourModule
+    ToursModule,
+    BookingsModule,
+    ReviewTourModule,
   ],
-  controllers: [AppController, TourCategoryController],
-  providers: [AppService, TourCategoryService],
+  controllers: [AppController],
+  providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}
