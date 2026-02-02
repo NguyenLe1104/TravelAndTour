@@ -179,3 +179,281 @@ model Review {
 
   @@unique([userId, tourId])
 }
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["nativeDistinct"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int      @id @default(autoincrement())
+  username    String   @unique
+  password    String
+  fullName    String
+  email       String   @unique
+  phone       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+
+  userRoles      UserRole[]
+  refreshTokens  RefreshToken[]
+
+  bookings       Booking[]
+  reviews        Review[]
+}
+
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+
+  userRoles   UserRole[]
+}
+
+model UserRole {
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+  role   Role @relation(fields: [roleId], references: [id])
+  roleId Int
+
+  @@id([userId, roleId])
+}
+
+model RefreshToken {
+  id          Int      @id @default(autoincrement())
+  token       String   @unique
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  expiresAt   DateTime
+  revoked     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+enum TourStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+}
+
+enum BookingStatus {
+  PENDING
+  PAID
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+model Tour {
+  id              Int        @id @default(autoincrement())
+  title           String
+  description     String?
+  price           Decimal
+  durationDays    Int
+  location        String
+  startDate       DateTime?
+  endDate         DateTime?
+  seatsTotal      Int
+  seatsAvailable  Int
+  status          TourStatus @default(DRAFT)
+  categoryId      Int
+  category        TourCategory @relation(fields: [categoryId], references: [id])
+
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  images          TourImage[]
+  schedules       TourSchedule[]
+  bookings        Booking[]
+  reviews         Review[]
+}
+
+model TourImage {
+  id        Int    @id @default(autoincrement())
+  tourId   Int
+  imageUrl String
+
+  tour     Tour   @relation(fields: [tourId], references: [id], onDelete: Cascade)
+}
+
+model TourSchedule {
+  id        Int
+  tourId    Int
+  dayNumber Int
+  title     String?
+  activities String?
+
+  tour      Tour @relation(fields: [tourId], references: [id], onDelete: Cascade)
+
+  @@id([tourId, dayNumber])
+}
+
+model Hotel {
+  id            Int      @id @default(autoincrement())
+  name          String   // Tên khách sạn (Mường Thanh, Sheraton...)
+  address       String   // Địa chỉ cụ thể
+  city          String   // Thành phố (để lọc: Nha Trang, Đà Lạt...)
+  pricePerNight Decimal  // Giá 1 đêm trung bình
+  stars         Int      @default(3) // Số sao (1-5)
+  description   String?
+  images        String[] // Lưu mảng link ảnh: ["url1", "url2"] cho nhanh
+  
+  // Tiện ích (Wifi, Bể bơi...) - Có thể thêm bảng riêng nếu muốn chi tiết hơn
+  amenities     String[] 
+  checkInTime   String   @default("14:00")  // Giờ nhận phòng
+  checkOutTime  String   @default("12:00")  // Giờ trả phòng
+  policy        String?                     // Lưu nội dung: "Bao gồm nước suối, wifi..."
+  
+  bookings      Booking[]
+  reviews       Review[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Car {
+  id          Int      @id @default(autoincrement())
+  name        String   // Tên xe (Mazda 3, Limousine 16 chỗ...)
+  brand       String   // Hãng (Toyota, Ford...)
+  seats       Int      // Số chỗ ngồi
+  pricePerDay Decimal  // Giá thuê 1 ngày
+  hasDriver   Boolean  @default(true) // Có tài xế hay tự lái?
+  location    String   // Xe đang ở khu vực nào?
+  images      String[] 
+  
+  bookings    Booking[]
+  reviews     Review[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Flight {
+  id             Int      @id @default(autoincrement())
+  airline        String   // Vietnam Airlines, Vietjet...
+  flightNumber   String   // VN123
+  fromAirport    String   // Sân bay đi (HAN)
+  toAirport      String   // Sân bay đến (SGN)
+  departTime     DateTime // Giờ bay
+  arriveTime     DateTime // Giờ đến
+  price          Decimal
+  seatsAvailable Int      // Số ghế còn lại
+  
+  bookings       Booking[]
+  
+  createdAt      DateTime @default(now())
+}
+
+model Booking {
+  id          Int           @id @default(autoincrement())
+  bookingDate DateTime      @default(now())
+  status      BookingStatus @default(PENDING)
+  totalPrice  Decimal
+  
+  // Thông tin thời gian sử dụng dịch vụ (Dùng chung cho tất cả)
+  startDate   DateTime      // Ngày đi Tour / Check-in Hotel / Nhận xe / Ngày bay
+  endDate     DateTime?     // Ngày về Tour / Check-out Hotel / Trả xe (Vé bay 1 chiều thì để null)
+
+  quantity    Int           @default(1)
+
+
+  userId      Int
+  user        User          @relation(fields: [userId], references: [id])
+
+  
+  tourId      Int?
+  tour        Tour?         @relation(fields: [tourId], references: [id])
+
+  hotelId     Int?
+  hotel       Hotel?        @relation(fields: [hotelId], references: [id])
+
+  carId       Int?
+  car         Car?          @relation(fields: [carId], references: [id])
+
+  flightId    Int?
+  flight      Flight?       @relation(fields: [flightId], references: [id])
+
+
+  travelers   BookingTraveler[]
+  payment     Payment?
+}
+
+model BookingTraveler {
+  id         Int     @id @default(autoincrement())
+  bookingId Int
+  fullName  String
+  gender    Gender
+  dob       DateTime?
+  passport  String?
+
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id            Int           @id @default(autoincrement())
+  bookingId     Int           @unique
+  method        String
+  amount        Decimal
+  status        PaymentStatus
+  transactionId String?
+  paidAt        DateTime?
+
+  booking       Booking       @relation(fields: [bookingId], references: [id])
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  rating    Int     
+  comment   String?
+  createdAt DateTime @default(now())
+
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+
+
+  tourId    Int?
+  tour      Tour?    @relation(fields: [tourId], references: [id])
+
+  hotelId   Int?
+  hotel     Hotel?   @relation(fields: [hotelId], references: [id])
+
+  carId     Int?
+  car       Car?     @relation(fields: [carId], references: [id])
+  
+
+}
+
+model TourCategory {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tours       Tour[]
+}
+
