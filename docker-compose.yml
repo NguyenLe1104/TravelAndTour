@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: travelandtour_db
+    environment:
+      POSTGRES_USER: ${DB_USER:-traveltour}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-traveltour123}
+      POSTGRES_DB: ${DB_NAME:-travelandtour}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-traveltour}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - travelandtour-network
+
+  # Backend - NestJS API
+  backend:
+    build:
+      context: ./BE-TravelAndTour
+      dockerfile: Dockerfile
+    container_name: travelandtour_backend
+    volumes:
+      - ./BE-TravelAndTour:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm install -g @nestjs/cli && npm run start:dev"
+    # command: npm run start:dev
+    # command: tail -f /dev/null
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${DB_USER:-traveltour}:${DB_PASSWORD:-traveltour123}@postgres:5432/${DB_NAME:-travelandtour}
+      PORT: 3000
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-your-access-secret-key-change-this}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-your-refresh-secret-key-change-this}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+    ports:
+      - "3000:3000"
+      - "5555:5555"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - travelandtour-network
+    restart: unless-stopped
+
+  # pgAdmin - PostgreSQL Management UI
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: travelandtour_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - travelandtour-network
+    restart: unless-stopped
+
+  # Frontend - React + Vite
+  frontend:
+    build:
+      context: ./FE-TravelAndTour
+      dockerfile: Dockerfile
+    container_name: travelandtour_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - travelandtour-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  travelandtour-network:
+    driver: bridge
